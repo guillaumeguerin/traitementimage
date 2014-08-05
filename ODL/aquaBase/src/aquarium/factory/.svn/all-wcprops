@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/projet/svn/pp2-zine-guill/!svn/ver/5/trunk/aquaBase/src/aquarium/factory
+END
+StoneFactory.java
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/projet/svn/pp2-zine-guill/!svn/ver/7/trunk/aquaBase/src/aquarium/factory/StoneFactory.java
+END
+FishFactory.java
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/projet/svn/pp2-zine-guill/!svn/ver/9/trunk/aquaBase/src/aquarium/factory/FishFactory.java
+END
+SeaweedFactory.java
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/projet/svn/pp2-zine-guill/!svn/ver/7/trunk/aquaBase/src/aquarium/factory/SeaweedFactory.java
+END
+AquariumItemFactory.java
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/projet/svn/pp2-zine-guill/!svn/ver/5/trunk/aquaBase/src/aquarium/factory/AquariumItemFactory.java
+END
+RedFishFactory.java
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/projet/svn/pp2-zine-guill/!svn/ver/9/trunk/aquaBase/src/aquarium/factory/RedFishFactory.java
+END

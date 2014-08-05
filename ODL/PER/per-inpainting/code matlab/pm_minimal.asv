@@ -1,0 +1,188 @@
+function pm_minimal(a, b)
+imgA = imread(a);
+imgB = imread(b);
+display('PatchMatch');
+[ann, annd] = patchmatch(imgA, imgB);
+display('');
+histo = computeOffset(imgA, ann);
+bar(histo);
+end
+
+function [ann, annd] = patchmatch(imgA, imgB)
+[wA, hA, zA] = size(imgA);
+[wB, hB, zA] = size(imgB);
+
+ann = cell(wA, hA);
+annd = zeros(wB, hB, 'double');
+
+aew = wA - Constants.PATCH_W;
+aeh = hA - Constants.PATCH_W;
+bew = wB - Constants.PATCH_W;
+beh = hB - Constants.PATCH_W;
+
+for ay = 1:aeh
+    for ax = 1:aew
+        bx = randi([1, bew]);
+        by = randi([1, beh]);
+        ann{ay, ax} = {bx by};
+        annd(ay, ax) = distance(imgA, imgB, ax, ay, bx, by);
+    end
+end
+
+for iter = 0:Constants.PM_ITERS-1
+    display(iter);
+    ystart = 1;
+    yend = aeh;
+    ychange = 1;
+    
+    xstart = 1;
+    xend = aew;
+    xchange = 1;
+    
+    if mod(iter, 2) == 1
+        ystart = yend;
+        yend = 1;
+        ychange = -1;
+        
+        xstart = xend;
+        xend = 1;
+        xchange = -1;
+    end
+    
+    ay = ystart;
+    while ay ~= yend
+        ax = xstart;
+        while ax ~= xend
+            xbest = ann{ay, ax}{1};
+            ybest = ann{ay, ax}{2};
+            dbest = annd(ay, ax);
+            
+            if uint32(ax - xchange) < uint32(aew)
+                xp = ann{ay, ax}{1};
+                yp = ann{ay, ax}{2};
+            
+                if uint32(xp) < uint32(bew)
+                    [xbest, ybest, dbest] = improve_guess(imgA, imgB, ax, ay, xbest, ybest, dbest, xp, yp);
+                end
+            end
+            
+            if uint32(ay - ychange) < uint32(aeh)
+                xp = ann{ay, ax}{1};
+                yp = ann{ay, ax}{2};
+                
+                if uint32(yp) < uint32(beh)
+                    [xbest, ybest, dbest] = improve_guess(imgA, imgB, ax, ay, xbest, ybest, dbest, xp, yp);
+                end
+            end
+            
+            rs_start = Constants.RS_MAX;
+            if rs_start > max(wB, hB)
+                rs_start = max(wB, hB);
+            end
+            mag = rs_start;
+            while mag >= 1
+                xmin = max(xbest-mag, 0);
+                xmax = min(xbest+mag+1, bew);
+                ymin = max(ybest-mag, 0);
+                ymax = min(ybest+mag+1, beh);
+                xp = xmin + randi([1, xmax-xmin]);
+                yp = ymin + randi([1, ymax-ymin]);
+               [xbest, ybest, dbest] = improve_guess(imgA, imgB, ax, ay, xbest, ybest, dbest, xp, yp);
+                mag = floor(mag / 2);
+            end
+
+            ann{ay, ax} = {xbest ybest};
+            annd(ay, ax) = dbest;
+            ax = ax + xchange;
+        end
+        ay = ay + ychange;
+    end
+end
+end
+
+function [xbest, ybest, dbest] = improve_guess(a, b, ax, ay, xbest, ybest, dbest, bx, by)
+d = distance(a, b, ax, ay, bx, by, dbest);
+if d < dbest
+    dbest = d;
+    xbest = bx;
+    ybest = by;
+end
+end
+
+function res = distance(a, b, ax, ay, bx, by, cutoff)
+if nargin < 7
+    cutoff = intmax;
+end
+res = 0;
+for dy = 1:Constants.PATCH_W
+    arow = double(a(:,ay+dy,:));
+    brow = double(b(:,by+dy,:));
+    for dx = 1:Constants.PATCH_W
+        ac = arow(ax+dx, 1,:);
+        bc = brow(bx+dx, 1,:);
+        dr = ac(1,1,1) - bc(1,1,1);
+        dg = ac(1,1,2) - bc(1,1,2);
+        db = ac(1,1,3) - bc(1,1,3);
+        res = res + dr*dr + dg*dg + db*db;
+        res = int32(res);
+    end
+    if(res >= cutoff)
+        res = cutoff;
+        return
+    end
+end
+end
+
+function histo = computeOffset(a, ann)
+[wAnn, hAnn, zAnn] = size(ann);
+[wA, hA, zA] = size(a);
+offset = cell(1, 1);
+histo = zeros(wA, hA);
+
+for x = 1:wAnn-Constants.PATCH_W
+   for y = 1:hAnn-Constants.PATCH_W
+       offX = ann{y, x}{1} - x;
+       offY = ann{y, x}{2} - y;
+       offset = addCheck(offX, offY, offset);
+   end
+end
+
+for i = 1:size(offset)
+   for xp = 1:wAnn-Constants.PATCH_W
+      for yp = 1:wAnn-Constants.PATCH_W
+          if (xp + offset{i}{1}) == ann{yp, xp}{1}
+              if (yp + offset{i}{2}) == ann{yp, xp}{2}
+                  histo(yp, xp) = histo(yp, xp) + 1;
+              end
+          end
+      end
+   end
+end
+end
+
+function newOffset = addCheck(x, y, offset)
+found = 0;
+if isempty(offset{1}) ~= true
+    for i = 1:size(offset)
+       if offset{i,1}{1} == x
+          if offset{i,1}{2} == y
+             found = 1; 
+          end
+       end
+    end
+
+    newOffset = offset;
+
+    if found == 0
+       [sizeOffsetX, sizeOffsetY] = size(offset);
+       newOffset = cell(sizeOffsetX+1, 1);
+       for i = 1:sizeOffsetX
+          newOffset{i} = offset{i}; 
+       end
+       newOffset{sizeOffsetX+1} = {x y};
+    end
+else
+   newOffset = cell(1,1);
+   newOffset{1} = {x y};
+end
+end

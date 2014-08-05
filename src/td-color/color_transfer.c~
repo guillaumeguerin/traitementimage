@@ -1,0 +1,28 @@
+/**
+ * @file color_transfert
+ * @brief transfert color from reference image to source image.
+ *        Method from Reinhard et al. : 
+ *        Erik Reinhard, Michael Ashikhmin, Bruce Gooch and Peter Shirley, 
+ *        'Color Transfer between Images', IEEE CGA special issue on 
+ *        Applied Perception, Vol 21, No 5, pp 34-41, September - October 2001
+ */
+
+#define D 3
+
+static float RGB2LMS[D][D] = {
+  {0.3811, 0.5783, 0.0402}, 
+  {0.1967, 0.7244, 0.0782},  
+  {0.0241, 0.1288, 0.8444}
+};
+
+/**
+ * @brief usage function : 
+ *        <ims>: the source image as reference
+ *        <imt>: the target image to maodify
+ *        <imd>: the result
+ */
+void usage (char *s){
+  fprintf(stderr, "Usage: %s <ims> <imd> <imd> \n", s);
+  exit(EXIT_FAILURE);
+}
+

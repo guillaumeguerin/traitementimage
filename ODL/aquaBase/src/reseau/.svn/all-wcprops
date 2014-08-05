@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/projet/svn/pp2-zine-guill/!svn/ver/7/trunk/aquaBase/src/reseau
+END
+Connexion.java
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/projet/svn/pp2-zine-guill/!svn/ver/9/trunk/aquaBase/src/reseau/Connexion.java
+END
+ServeurTCP.java
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/projet/svn/pp2-zine-guill/!svn/ver/8/trunk/aquaBase/src/reseau/ServeurTCP.java
+END
+ClientTCP.java
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/projet/svn/pp2-zine-guill/!svn/ver/9/trunk/aquaBase/src/reseau/ClientTCP.java
+END

@@ -1,0 +1,77 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <pnm.h>
+#include <string.h>
+#include <math.h>
+
+
+float gaussian (float k, float sigma){
+  return (float) exp(-(k*k)/(2*sigma*sigma));
+}
+
+void  
+process(int sigma_s, int sigma_g, char* ims_name, char* imd_name){
+  
+  pnm ims = pnm_load(ims_name);
+  int width  = pnm_get_width(ims);
+  int height = pnm_get_height(ims);
+  pnm imd = pnm_new(width,height, PnmRawPpm);
+
+  float denominator  = 0;
+  float numerator  = 0;
+  float blabla;
+
+  unsigned short * image = (unsigned short *) malloc(height * width * sizeof(unsigned short));
+  float * res = (float *) malloc(height * width * sizeof(float));
+  float * tmp = (float *) malloc(height * width * sizeof(float));
+
+  image = pnm_get_channel(ims, image, PnmRed);
+  for(int i=0; i<width*height; i++){
+    res[i] = (float) image[i];
+    tmp[i] = (float) image[i];
+  }
+
+  for(int y = 0; y<height; y++)
+    for(int x = 0; x<width; x++) {
+      denominator = 0;
+      numerator = 0;
+      for(int j=-sigma_s; j<sigma_s; j++)
+	for(int i=-sigma_s; i<sigma_s; i++) {
+	  if(i+x<width  && x+i>0 && j+y<height && y+j>0) {
+	    blabla  =  gaussian(sigma_s, hypotf(i,j)) * gaussian(sigma_g, abs(tmp[x+y*width]-tmp[(x+i)+(y+j)*width]));
+	    numerator += blabla * tmp[(x+i)+(y+j)*width];
+	    denominator += blabla;
+	  }
+	}
+      
+      res[x + y*width] = numerator / denominator;
+
+    }
+
+  for(int y = 0; y<height; y++)
+     for(int x = 0; x<width; x++) 
+       for(int z = 0; z<3; z++)
+	 pnm_set_component(imd,y,x,z,res[y*height+x]);
+
+  pnm_save(imd, PnmRawPpm, imd_name);
+}
+
+ 
+  
+
+  void usage (char *s){
+    fprintf(stderr, "Usage: %s <sigma_s> <sigma_g> <ims> <imd>\n", s);
+  exit(EXIT_FAILURE);
+}
+  
+#define param 4
+int main(int argc, char *argv[]){
+  if (argc != param+1) usage(argv[0]);
+  int sigma_s = atoi(argv[1]);
+  int sigma_g = atoi(argv[2]);
+  char *ims_name = argv[3];
+  char *imd_name = argv[4];
+  process(sigma_s, sigma_g, ims_name, imd_name);
+ 
+  return EXIT_SUCCESS;
+}

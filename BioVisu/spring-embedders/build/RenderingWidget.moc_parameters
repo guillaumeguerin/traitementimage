@@ -1,0 +1,16 @@
+-I/usr/include/qt4
+-I/usr/include/qt4/QtOpenGL
+-I/usr/include/qt4/QtGui
+-I/usr/include/qt4/QtCore
+-I/usr/include/qt4
+-I/usr/include/eigen3
+-I/net/cremi/gguerind/espaces/travail/BioVisu/spring-embedders/include
+-I/net/cremi/gguerind/espaces/travail/BioVisu/spring-embedders/src
+-DQT_OPENGL_LIB
+-DQT_GUI_LIB
+-DQT_CORE_LIB
+-DPGHP_DIR="/net/cremi/gguerind/espaces/travail/BioVisu/spring-embedders"
+-DEIGEN_DONT_ALIGN_STATICALLY
+-o
+/net/cremi/gguerind/espaces/travail/BioVisu/spring-embedders/build/RenderingWidget.moc
+/net/cremi/gguerind/espaces/travail/BioVisu/spring-embedders/src/RenderingWidget.h

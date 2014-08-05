@@ -1,0 +1,8 @@
+
+--Cette ligne, et les suivantes ci-dessous, seront ignorées--
+
+M    src/aquarium/factory/FishFactory.java
+M    src/aquarium/factory/RedFishFactory.java
+M    src/aquarium/util/Protocole.java
+M    src/reseau/Connexion.java
+M    src/reseau/ClientTCP.java

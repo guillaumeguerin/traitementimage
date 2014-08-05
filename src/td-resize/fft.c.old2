@@ -1,0 +1,87 @@
+//Copie sur Farau Romain pour voir si ma fft marche pas
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <complex.h>
+#include <fftw3.h>
+#include <math.h>
+
+#include "fft.h"
+
+fftw_complex *fft_forward(int width, int height, unsigned short* gray_image)
+{
+  fftw_complex *spatial_repr=(fftw_complex*)fftw_malloc(height*width*sizeof(fftw_complex));
+
+  for(int i=0; i<height*width; i++)
+    {
+      spatial_repr[i]=gray_image[i]+I*0;  
+      spatial_repr[i]=pow(-1,(i%width)+((i-(i%width))/width))*spatial_repr[i];
+    }
+
+  fftw_complex *frequency_repr=(fftw_complex*)fftw_malloc(height*width*sizeof(fftw_complex));
+
+  //Recentrage
+
+
+  fftw_plan plan=fftw_plan_dft_2d(height,width,spatial_repr,frequency_repr,FFTW_FORWARD,FFTW_ESTIMATE);
+
+  fftw_execute(plan);
+  fftw_destroy_plan(plan);
+
+  fftw_free(spatial_repr);
+
+  return frequency_repr;
+}
+
+unsigned short *fft_backward(int width, int height, int factor, fftw_complex* freq_repr)
+{
+  int taille=width*height;
+  unsigned short *res=(unsigned short*) malloc(taille*sizeof(unsigned short));
+  fftw_complex *spatial_repr=(fftw_complex*) fftw_malloc(taille*sizeof(fftw_complex));
+  fftw_plan plan=fftw_plan_dft_2d(height, width, freq_repr, spatial_repr, FFTW_BACKWARD, FFTW_ESTIMATE);
+  fftw_execute(plan);
+  int x, tmp;
+
+  for(int i=0; i<taille; i++)
+    {
+      x=i%width;
+      spatial_repr[i]=(fftw_complex)(pow(-1,(x)+(i-x)/width)*spatial_repr[i]);
+      tmp=((creal(spatial_repr[i]))*(factor*factor)/taille);
+      if(tmp<0)
+	tmp=-tmp;
+      if(tmp>255)
+	tmp=tmp%255;
+      res[i]=tmp;
+        
+    }
+
+  fftw_destroy_plan(plan);
+  fftw_free(spatial_repr);
+  return res;
+}
+
+void fft_fr_to_spectra(int w, int h, fftw_complex* freq_repr, float *as, float* ps)
+{
+  float max_as=0;
+  for(int i=0; i<h*w; i++)
+    {
+      as[i]=hypot(creal(freq_repr[i]),cimag(freq_repr[i]));
+      if(max_as<as[i])
+	max_as=as[i];
+      ps[i]=atan2(creal(freq_repr[i]),cimag(freq_repr[i]));
+    }
+  for(int i=0; i<h*w; i++)
+    {
+      as[i]=pow((as[i]/max_as),0.1)*255;
+      
+    }
+}
+
+void fft_spectra_to_fr(int w, int h, float *as, float* ps, fftw_complex* freq_repr)
+{
+ freq_repr=(fftw_complex*)fftw_malloc(h*w*sizeof(fftw_complex));
+ for(int i=0; i<h*w; i++)
+    {
+      freq_repr[i]=as[i]*cos(ps[i])+I*as[i]*sin(ps[i]);
+    }
+}
